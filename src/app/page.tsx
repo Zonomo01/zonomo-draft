@@ -1,5 +1,6 @@
 import MaxWidthWrapper from '@/components/MaxWidthWrapper'
 import ProductReel from '@/components/ProductReel'
+import ServiceCategories from '@/components/ServiceCategories'
 import {
   Button,
   buttonVariants,
@@ -13,16 +14,16 @@ import Link from 'next/link'
 
 const perks = [
   {
-    name: 'Instant Delivery',
+    name: 'Quick & Easy Booking',
     Icon: ArrowDownToLine,
     description:
-      'Get your assets delivered to your email in seconds and download them right away.',
+      'Find and book the perfect service provider in minutes.',
   },
   {
     name: 'Guaranteed Quality',
     Icon: CheckCircle,
     description:
-      'Every asset on our platform is verified by our team to ensure our highest quality standards. Not happy? We offer a 30-day refund guarantee.',
+      'Every service provider on our platform is verified to ensure the highest quality standards. Not happy? We offer a satisfaction guarantee.',
   },
   {
     name: 'For the Planet',
@@ -39,21 +40,20 @@ export default function Home() {
         <div className='py-20 mx-auto text-center flex flex-col items-center max-w-3xl'>
           <h1 className='text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl'>
             Your marketplace for high-quality{' '}
-            <span className='text-blue-600'>
-              digital assets
+            <span className='text-black'>
+              house services
             </span>
             .
           </h1>
           <p className='mt-6 text-lg max-w-prose text-muted-foreground'>
-            Welcome to DigitalHippo. Every asset on our
-            platform is verified by our team to ensure our
-            highest quality standards.
+            Welcome to DigitalHippo. Every service provider on our
+            platform is carefully vetted to ensure the highest quality standards.
           </p>
           <div className='flex flex-col sm:flex-row gap-4 mt-6'>
             <Link
               href='/products'
               className={buttonVariants()}>
-              Browse Trending
+              Browse Services
             </Link>
             <Button variant='ghost'>
               Our quality promise &rarr;
@@ -64,8 +64,10 @@ export default function Home() {
         <ProductReel
           query={{ sort: 'desc', limit: 4 }}
           href='/products?sort=recent'
-          title='Brand new'
+          title='Brand new services'
         />
+
+        <ServiceCategories />
       </MaxWidthWrapper>
 
       <section className='border-t border-gray-200 bg-gray-50'>
@@ -76,7 +78,7 @@ export default function Home() {
                 key={perk.name}
                 className='text-center md:flex md:items-start md:text-left lg:block lg:text-center'>
                 <div className='md:flex-shrink-0 flex justify-center'>
-                  <div className='h-16 w-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-900'>
+                  <div className='h-16 w-16 flex items-center justify-center rounded-full bg-white text-black'>
                     {<perk.Icon className='w-1/3 h-1/3' />}
                   </div>
                 </div>

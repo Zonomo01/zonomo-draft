@@ -13,6 +13,7 @@ export interface Config {
     media: Media;
     product_files: ProductFile;
     orders: Order;
+    bookings: Booking;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
@@ -22,7 +23,28 @@ export interface User {
   id: string;
   products?: (string | Product)[] | null;
   product_files?: (string | ProductFile)[] | null;
-  role: 'admin' | 'user';
+  role: 'admin' | 'provider' | 'user';
+  providerDetails?: {
+    businessName?: string | null;
+    phoneNumber?: string | null;
+    address?: string | null;
+    experience?: number | null;
+    certifications?:
+      | {
+          name?: string | null;
+          issuer?: string | null;
+          year?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    serviceAreas?:
+      | {
+          area?: string | null;
+          radius?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -40,10 +62,22 @@ export interface Product {
   id: string;
   user?: (string | null) | User;
   name: string;
-  description?: string | null;
+  description: string;
   price: number;
-  category: 'ui_kits' | 'icons';
-  product_files: string | ProductFile;
+  category: 'cleaning' | 'plumbing' | 'electrical' | 'carpentry' | 'painting' | 'gardening';
+  serviceLocation: string;
+  serviceType: 'one_time' | 'recurring';
+  duration: number;
+  availability: {
+    day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+    timeSlots: {
+      startTime: string;
+      endTime: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  product_files?: (string | null) | ProductFile;
   approvedForSale?: ('pending' | 'approved' | 'denied') | null;
   priceId?: string | null;
   stripeId?: string | null;
@@ -109,6 +143,19 @@ export interface Order {
   _isPaid: boolean;
   user: string | User;
   products: (string | Product)[];
+  updatedAt: string;
+  createdAt: string;
+}
+export interface Booking {
+  id: string;
+  service: string | Product;
+  customer: string | User;
+  provider: string | User;
+  requestedDate: string;
+  requestedTimeSlot: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  totalPrice: number;
+  customerNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }

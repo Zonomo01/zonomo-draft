@@ -145,18 +145,19 @@ export const Products: CollectionConfig = {
     },
     {
       name: 'name',
-      label: 'Name',
+      label: 'Service Name',
       type: 'text',
       required: true,
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Product details',
+      label: 'Service details',
+      required: true,
     },
     {
       name: 'price',
-      label: 'Price in USD',
+      label: 'Price per hour (USD)',
       min: 0,
       max: 1000,
       type: 'number',
@@ -164,7 +165,7 @@ export const Products: CollectionConfig = {
     },
     {
       name: 'category',
-      label: 'Category',
+      label: 'Service Category',
       type: 'select',
       options: PRODUCT_CATEGORIES.map(
         ({ label, value }) => ({ label, value })
@@ -172,16 +173,88 @@ export const Products: CollectionConfig = {
       required: true,
     },
     {
-      name: 'product_files',
-      label: 'Product file(s)',
-      type: 'relationship',
+      name: 'serviceLocation',
+      label: 'Service Location',
+      type: 'text',
+      required: true, 
+    },
+    {
+      name: 'serviceType',
+      label: 'Service Type',
+      type: 'select',
       required: true,
+      options: [
+        { label: 'One-time Service', value: 'one_time' },
+        { label: 'Recurring Service', value: 'recurring' },
+      ],
+    },
+    {
+      name: 'duration',
+      label: 'Service Duration (hours)',
+      type: 'number',
+      min: 1,
+      max: 24,
+      required: true,
+    },
+    {
+      name: 'availability',
+      label: 'Service Availability',
+      type: 'array',
+      required: true,
+      minRows: 1,
+      maxRows: 7,
+      fields: [
+        {
+          name: 'day',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Monday', value: 'monday' },
+            { label: 'Tuesday', value: 'tuesday' },
+            { label: 'Wednesday', value: 'wednesday' },
+            { label: 'Thursday', value: 'thursday' },
+            { label: 'Friday', value: 'friday' },
+            { label: 'Saturday', value: 'saturday' },
+            { label: 'Sunday', value: 'sunday' },
+          ],
+        },
+        {
+          name: 'timeSlots',
+          type: 'array',
+          required: true,
+          minRows: 1,
+          fields: [
+            {
+              name: 'startTime',
+              type: 'text',
+              required: true,
+              admin: {
+                description: 'Format: HH:MM (24-hour)',
+              },
+            },
+            {
+              name: 'endTime',
+              type: 'text',
+              required: true,
+              admin: {
+                description: 'Format: HH:MM (24-hour)',
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'product_files',
+      label: 'Service Documents',
+      type: 'relationship',
+      required: false,
       relationTo: 'product_files',
       hasMany: false,
     },
     {
       name: 'approvedForSale',
-      label: 'Product Status',
+      label: 'Service Status',
       type: 'select',
       defaultValue: 'pending',
       access: {
@@ -231,7 +304,7 @@ export const Products: CollectionConfig = {
     {
       name: 'images',
       type: 'array',
-      label: 'Product images',
+      label: 'Service images',
       minRows: 1,
       maxRows: 4,
       required: true,
