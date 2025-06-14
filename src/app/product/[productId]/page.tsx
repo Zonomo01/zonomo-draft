@@ -8,6 +8,11 @@ import { formatPrice } from '@/lib/utils'
 import { Check, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Product, Media } from '@/payload-types'
+import BookServiceButton from '@/components/BookServiceButton'
+import { getServerSideUser } from '@/lib/payload-utils'
+import { cookies } from 'next/headers'
 
 interface PageProps {
   params: {
@@ -22,7 +27,6 @@ const BREADCRUMBS = [
 
 const Page = async ({ params }: PageProps) => {
   const { productId } = params
-
   const payload = await getPayloadClient()
 
   const { docs: products } = await payload.find({
@@ -38,7 +42,7 @@ const Page = async ({ params }: PageProps) => {
     },
   })
 
-  const [product] = products
+  const [product] = products as unknown as Product[]
 
   if (!product) return notFound()
 
@@ -48,9 +52,11 @@ const Page = async ({ params }: PageProps) => {
 
   const validUrls = product.images
     .map(({ image }) =>
-      typeof image === 'string' ? image : image.url
+      typeof image === 'string' ? image : (image as Media).url
     )
     .filter(Boolean) as string[]
+
+  const { user } = await getServerSideUser(cookies())
 
   return (
     <MaxWidthWrapper className='bg-white'>
@@ -102,7 +108,41 @@ const Page = async ({ params }: PageProps) => {
                 <p className='text-base text-muted-foreground'>
                   {product.description}
                 </p>
+                {product.serviceType && (
+                  <p className='text-base text-muted-foreground'>
+                    <strong>Service Type:</strong> {product.serviceType === 'one_time' ? 'One-time Service' : 'Recurring Service'}
+                  </p>
+                )}
+                {product.duration && (
+                  <p className='text-base text-muted-foreground'>
+                    <strong>Estimated Duration:</strong> {product.duration} hours
+                  </p>
+                )}
+                {product.serviceLocation && (
+                  <p className='text-base text-muted-foreground'>
+                    <strong>Service Location:</strong> {product.serviceLocation}
+                  </p>
+                )}
               </div>
+
+              {product.availability && product.availability.length > 0 && (
+                <div className='mt-4 space-y-2'>
+                  <p className='text-base text-gray-900 font-medium'>
+                    Service Availability:
+                  </p>
+                  {product.availability.map((avail, index) => (
+                    <div key={index} className='text-sm text-muted-foreground'>
+                      <strong>{avail.day}:</strong>{' '}
+                      {avail.timeSlots.map((slot, sIndex) => (
+                        <span key={sIndex}>
+                          {slot.startTime} - {slot.endTime}
+                          {sIndex < avail.timeSlots.length - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className='mt-6 flex items-center'>
                 <Check
@@ -110,7 +150,7 @@ const Page = async ({ params }: PageProps) => {
                   className='h-5 w-5 flex-shrink-0 text-green-500'
                 />
                 <p className='ml-2 text-sm text-muted-foreground'>
-                  Eligible for instant delivery
+                  Service available. Contact provider for booking.
                 </p>
               </div>
             </section>
@@ -127,7 +167,7 @@ const Page = async ({ params }: PageProps) => {
           <div className='mt-10 lg:col-start-1 lg:row-start-2 lg:max-w-lg lg:self-start'>
             <div>
               <div className='mt-10'>
-                <AddToCartButton product={product} />
+                <BookServiceButton product={product} user={user} availability={product.availability} />
               </div>
               <div className='mt-6 text-center'>
                 <div className='group inline-flex text-sm text-medium'>
@@ -136,7 +176,7 @@ const Page = async ({ params }: PageProps) => {
                     className='mr-2 h-5 w-5 flex-shrink-0 text-gray-400'
                   />
                   <span className='text-muted-foreground hover:text-gray-700'>
-                    30 Day Return Guarantee
+                    30 Day Satisfaction Guarantee
                   </span>
                 </div>
               </div>

@@ -37,7 +37,7 @@ export const Users: CollectionConfig = {
   fields: [
     {
       name: 'products',
-      label: 'Products',
+      label: 'Services',
       admin: {
         condition: () => false,
       },
@@ -47,7 +47,7 @@ export const Users: CollectionConfig = {
     },
     {
       name: 'product_files',
-      label: 'Product files',
+      label: 'Service Documents',
       admin: {
         condition: () => false,
       },
@@ -59,11 +59,81 @@ export const Users: CollectionConfig = {
       name: 'role',
       defaultValue: 'user',
       required: true,
-
       type: 'select',
       options: [
         { label: 'Admin', value: 'admin' },
+        { label: 'Service Provider', value: 'provider' },
         { label: 'User', value: 'user' },
+      ],
+    },
+    {
+      name: 'providerDetails',
+      label: 'Service Provider Details',
+      type: 'group',
+      admin: {
+        condition: (data) => data.role === 'provider',
+      },
+      fields: [
+        {
+          name: 'businessName',
+          type: 'text',
+          label: 'Business Name',
+        },
+        {
+          name: 'phoneNumber',
+          type: 'text',
+          label: 'Phone Number',
+        },
+        {
+          name: 'address',
+          type: 'textarea',
+          label: 'Business Address',
+        },
+        {
+          name: 'experience',
+          type: 'number',
+          label: 'Years of Experience',
+          min: 0,
+        },
+        {
+          name: 'certifications',
+          type: 'array',
+          label: 'Certifications',
+          fields: [
+            {
+              name: 'name',
+              type: 'text',
+              label: 'Certification Name',
+            },
+            {
+              name: 'issuer',
+              type: 'text',
+              label: 'Issuing Organization',
+            },
+            {
+              name: 'year',
+              type: 'number',
+              label: 'Year Obtained',
+            },
+          ],
+        },
+        {
+          name: 'serviceAreas',
+          type: 'array',
+          label: 'Service Areas',
+          fields: [
+            {
+              name: 'area',
+              type: 'text',
+              label: 'Area Name',
+            },
+            {
+              name: 'radius',
+              type: 'number',
+              label: 'Service Radius (miles)',
+            },
+          ],
+        },
       ],
     },
   ],

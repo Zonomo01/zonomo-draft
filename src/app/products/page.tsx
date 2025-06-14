@@ -25,7 +25,6 @@ const ProductsPage = ({
   return (
     <MaxWidthWrapper>
       <ProductReel
-        title={label ?? 'Browse high-quality assets'}
         query={{
           category,
           limit: 40,
@@ -34,6 +33,8 @@ const ProductsPage = ({
               ? sort
               : undefined,
         }}
+        title={label ?? 'Browse all house services'}
+        subtitle='Discover a wide range of services for your home.'
       />
     </MaxWidthWrapper>
   )

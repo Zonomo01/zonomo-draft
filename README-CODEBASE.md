@@ -243,4 +243,20 @@ export default middleware((req) => {
 - User behavior tracking
 - Performance metrics
 - Error rates
-- API usage statistics 
+- API usage statistics
+
+### `Products.ts` (Previously for Digital Products, now for Services)
+
+**File Address:** `src/collections/Products/Products.ts`
+
+This file defines the schema for what was previously 'digital products' and is now adapted to represent 'house services'. We have updated its fields to include service-specific attributes such as:
+- **Service Name** (replaces Product Name)
+- **Service Details** (more descriptive for services)
+- **Price per hour (USD)**
+- **Service Category** (now includes categories like Cleaning, Plumbing, etc., as defined in `src/config/index.ts`)
+- **Service Type** (e.g., 'One-time Service', 'Recurring Service')
+- **Service Duration (hours)**
+- **Service Availability** (an array of days with associated time slots for providers to specify when they are available).
+
+**Use of the page (in Payload Admin):**
+When a user with the 'Service Provider' role (or an 'Admin') goes to the 'Products' section in the Payload CMS admin panel, this collection's definition dictates the form fields they see. They use this page to create, edit, and manage their service listings, setting prices, categories, descriptions, images, and crucially, their availability schedule for clients to book. The backend logic (hooks) associated with this collection also handles the integration with Stripe for pricing and linking services to users. 
