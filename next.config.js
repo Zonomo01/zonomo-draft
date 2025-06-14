@@ -18,7 +18,6 @@ const nextConfig = {
 	eslint: {
 		ignoreDuringBuilds: true,
 	},
-	output: 'standalone',
 };
 
 const withPWA = require("next-pwa")({
