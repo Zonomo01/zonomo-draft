@@ -231,6 +231,13 @@ export const Products: CollectionConfig = {
               admin: {
                 description: 'Format: HH:MM (24-hour)',
               },
+              validate: (val: string) => {
+                const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
+                if (!timeRegex.test(val)) {
+                  return 'Please enter a valid time in HH:MM (24-hour) format.';
+                }
+                return true;
+              },
             },
             {
               name: 'endTime',
@@ -239,8 +246,35 @@ export const Products: CollectionConfig = {
               admin: {
                 description: 'Format: HH:MM (24-hour)',
               },
+              validate: (val: string) => {
+                const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
+                if (!timeRegex.test(val)) {
+                  return 'Please enter a valid time in HH:MM (24-hour) format.';
+                }
+                return true;
+              },
             },
           ],
+          validate: (value: any, { siblingData }) => {
+            if (siblingData && typeof siblingData.startTime === 'string' && typeof siblingData.endTime === 'string') {
+              const startTime = siblingData.startTime;
+              const endTime = siblingData.endTime;
+
+              const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
+              if (timeRegex.test(startTime) && timeRegex.test(endTime)) {
+                const [startHour, startMinute] = startTime.split(':').map(Number);
+                const [endHour, endMinute] = endTime.split(':').map(Number);
+
+                const startTotalMinutes = startHour * 60 + startMinute;
+                const endTotalMinutes = endHour * 60 + endMinute;
+
+                if (endTotalMinutes <= startTotalMinutes) {
+                  return 'End time must be after start time.';
+                }
+              }
+            }
+            return true;
+          },
         },
       ],
     },

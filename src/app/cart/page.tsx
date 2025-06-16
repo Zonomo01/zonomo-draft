@@ -10,6 +10,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const Page = () => {
   const { items, removeItem } = useCart()
@@ -81,7 +87,7 @@ const Page = () => {
                   isMounted && items.length > 0,
               })}>
               {isMounted &&
-                items.map(({ product }) => {
+                items.map(({ product, selectedDate, selectedTimeSlot, selectedTimeFrame }) => {
                   const label = PRODUCT_CATEGORIES.find(
                     (c) => c.value === product.category
                   )?.label
@@ -90,7 +96,7 @@ const Page = () => {
 
                   return (
                     <li
-                      key={product.id}
+                      key={`${product.id}-${selectedDate}-${selectedTimeSlot}`}
                       className='flex py-6 sm:py-10'>
                       <div className='flex-shrink-0'>
                         <div className='relative h-24 w-24'>
@@ -128,6 +134,21 @@ const Page = () => {
                             <p className='mt-1 text-sm font-medium text-gray-900'>
                               {formatPrice(product.price)}
                             </p>
+
+                            {/* Booking Details Accordion */}
+                            <Accordion type="single" collapsible className="w-full">
+                              <AccordionItem value="booking-details">
+                                <AccordionTrigger className="py-2 text-sm text-gray-500 hover:text-gray-700 font-medium">
+                                  Booking Details
+                                </AccordionTrigger>
+                                <AccordionContent className="pt-2 pb-2 text-sm text-gray-500 space-y-1">
+                                  <p><strong>Date:</strong> {selectedDate}</p>
+                                  <p><strong>Time Frame:</strong> {selectedTimeFrame}</p>
+                                  <p><strong>Time Slot:</strong> {selectedTimeSlot}</p>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+
                           </div>
 
                           <div className='mt-4 sm:mt-0 sm:pr-9 w-20'>
@@ -135,7 +156,7 @@ const Page = () => {
                               <Button
                                 aria-label='remove product'
                                 onClick={() =>
-                                  removeItem(product.id)
+                                  removeItem(product.id, selectedDate, selectedTimeSlot)
                                 }
                                 variant='ghost'>
                                 <X
@@ -205,20 +226,17 @@ const Page = () => {
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className='mt-6'>
               <Button
-                disabled={items.length === 0 || isLoading}
-                onClick={() =>
-                  createCheckoutSession({ productIds })
-                }
                 className='w-full'
-                size='lg'>
-                {isLoading ? (
-                  <Loader2 className='w-4 h-4 animate-spin mr-1.5' />
-                ) : null}
-                Checkout
+                size='lg'
+                onClick={() =>
+                  createCheckoutSession({
+                    productIds: items.map(({ product }) => product.id),
+                  })
+                }
+                disabled={isLoading}>
+                {isLoading ? 'Loading...' : 'Checkout'}
               </Button>
             </div>
           </section>

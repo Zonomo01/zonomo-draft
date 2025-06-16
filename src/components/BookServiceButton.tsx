@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Product, User } from '@/payload-types'
-import { format, addDays, nextDay, parseISO, setHours, setMinutes, isBefore, addHours, isValid, isToday } from 'date-fns'
+import { format, addDays, nextDay, parseISO, setHours, setMinutes, isBefore, addHours, isValid, isToday, isAfter } from 'date-fns'
 import { trpc } from '@/trpc/client'
 import { toast } from 'sonner'
 import { Calendar } from '@/components/ui/calendar'
@@ -13,6 +13,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRPCError } from '@trpc/server'
+import TimeFrameSelector, { TIME_FRAMES, TimeFrame } from './TimeFrameSelector'
+import { useCart } from '@/hooks/use-cart'
 
 interface BookServiceButtonProps {
   product: Product;
@@ -28,9 +30,12 @@ const BookServiceButton = ({
   const [showForm, setShowForm] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
+  const { addItem } = useCart()
 
   const { mutate: createBooking, isLoading: isCreatingBooking } = trpc.booking.createBooking.useMutation({
     onSuccess: () => {
@@ -90,13 +95,11 @@ const BookServiceButton = ({
   const getTimeSlotsForDate = (date: Date) => {
     const dayOfWeek = format(date, 'eeee').toLowerCase();
     
-    // Ensure dayOfWeek is one of the valid literal types
     if (!WEEK_DAYS.includes(dayOfWeek as typeof WEEK_DAYS[number])) {
       return [];
     }
 
     const typedDayOfWeek = dayOfWeek as Product['availability'][number]['day'];
-
     const dayAvailability = productAvailability?.find((avail) => avail.day === typedDayOfWeek)
 
     if (!dayAvailability || dayAvailability.timeSlots.length === 0) {
@@ -105,24 +108,73 @@ const BookServiceButton = ({
 
     const slots: string[] = []
     dayAvailability.timeSlots.forEach(range => {
-      const [startHourStr, startMinuteStr] = range.startTime.split(':')
-      const [endHourStr, endMinuteStr] = range.endTime.split(':')
+      const [startHourStr, startMinuteStr] = range.startTime.split(':').map(s => s.padStart(2, '0'))
+      const [endHourStr, endMinuteStr] = range.endTime.split(':').map(s => s.padStart(2, '0'))
 
-      let current = setMinutes(setHours(date, parseInt(startHourStr)), parseInt(startMinuteStr))
-      const end = setMinutes(setHours(date, parseInt(endHourStr)), parseInt(endMinuteStr))
+      let current = setMinutes(setHours(date, parseInt(startHourStr || '00')), parseInt(startMinuteStr || '00'))
+      const end = setMinutes(setHours(date, parseInt(endHourStr || '00')), parseInt(endMinuteStr || '00'))
 
-      const durationInHours = product.duration || 1; // Default to 1 hour if not set
+      const durationInHours = product.duration || 1;
 
       while (isBefore(current, end)) {
-        const next = addHours(current, durationInHours);
-        if (isBefore(next, end) || next.getTime() === end.getTime()) {
-          slots.push(`${format(current, 'hh:mm a')} - ${format(next, 'hh:mm a')}`)
+        const potentialNext = addHours(current, durationInHours);
+        const actualSlotEnd = isAfter(potentialNext, end) ? end : potentialNext;
+
+        if (isBefore(current, actualSlotEnd)) { // Ensure the slot has a positive duration
+          slots.push(`${format(current, 'hh:mm a')} - ${format(actualSlotEnd, 'hh:mm a')}`)
         }
-        current = next
+        current = actualSlotEnd // Advance current to the end of the slot just added
       }
     })
     console.log(`Generated slots for ${format(date, 'yyyy-MM-dd')}:`, slots);
     return slots
+  }
+
+  const getAvailableTimeFrames = (date: Date) => {
+    const slots = getTimeSlotsForDate(date)
+    const timeFrames = {
+      MORNING: 0,
+      AFTERNOON: 0,
+      EVENING: 0,
+    }
+
+    slots.forEach(slot => {
+      const [startTime] = slot.split(' - ')
+      const hour = parseInt(startTime.split(':')[0])
+      const isPM = startTime.toLowerCase().includes('pm')
+      const hour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour)
+
+      for (const frameKey in TIME_FRAMES) {
+        const timeFrame = frameKey as TimeFrame
+        const { start, end } = TIME_FRAMES[timeFrame]
+        const [startHour] = start.split(':')
+        const [endHour] = end.split(':')
+
+        if (hour24 >= parseInt(startHour) && hour24 < parseInt(endHour)) {
+          timeFrames[timeFrame]++
+          break // Assign to the first matching time frame
+        }
+      }
+    })
+
+    console.log(`Available time frames for ${format(date, 'yyyy-MM-dd')}:`, timeFrames);
+    return timeFrames
+  }
+
+  const getFilteredTimeSlots = (date: Date, timeFrame: TimeFrame) => {
+    const slots = getTimeSlotsForDate(date)
+    const { start, end } = TIME_FRAMES[timeFrame]
+    const [startHour] = start.split(':')
+    const [endHour] = end.split(':')
+
+    return slots.filter(slot => {
+      const [startTime] = slot.split(' - ')
+      const hour = parseInt(startTime.split(':')[0])
+      const isPM = startTime.toLowerCase().includes('pm')
+      const hour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour)
+
+      return hour24 >= parseInt(startHour) && hour24 < parseInt(endHour)
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,8 +187,8 @@ const BookServiceButton = ({
       return
     }
 
-    if (!selectedDate || !selectedTime) {
-      toast.error('Please select a date and time.')
+    if (!selectedDate || !selectedTime || !selectedTimeFrame) {
+      toast.error('Please select a date, time frame, and time slot.')
       setIsLoading(false)
       return
     }
@@ -147,12 +199,14 @@ const BookServiceButton = ({
       return
     }
 
-    createBooking({
-      productId: product.id,
-      requestedDate: format(selectedDate, 'yyyy-MM-dd'),
-      requestedTimeSlot: selectedTime,
-      customerNotes: name, // Using name as customer notes for now, can add a separate field later
-    })
+    addItem(product, format(selectedDate, 'yyyy-MM-dd'), selectedTime, selectedTimeFrame)
+    toast.success('Service added to cart!')
+    setShowForm(false)
+    setSelectedDate(undefined)
+    setSelectedTimeFrame(null)
+    setSelectedTime(null)
+    setName('')
+    setIsLoading(false)
   }
 
   if (!showForm) {
@@ -192,7 +246,8 @@ const BookServiceButton = ({
                 selected={selectedDate}
                 onSelect={(date) => {
                   setSelectedDate(date)
-                  setSelectedTime(null) // Reset time when date changes
+                  setSelectedTimeFrame(null)
+                  setSelectedTime(null)
                   setIsCalendarOpen(false)
                 }}
                 initialFocus
@@ -207,12 +262,27 @@ const BookServiceButton = ({
           </Popover>
         </div>
 
-        {/* Step 2: Select Time (only show if date is selected) */}
+        {/* Step 2: Select Time Frame (only show if date is selected) */}
         {selectedDate && (
+          <div className='space-y-2'>
+            <Label>Select Time Frame</Label>
+            <TimeFrameSelector
+              selectedTimeFrame={selectedTimeFrame}
+              onTimeFrameSelect={(timeFrame) => {
+                setSelectedTimeFrame(timeFrame)
+                setSelectedTime(null)
+              }}
+              availableSlots={getAvailableTimeFrames(selectedDate)}
+            />
+          </div>
+        )}
+
+        {/* Step 3: Select Time Slot (only show if time frame is selected) */}
+        {selectedDate && selectedTimeFrame && (
           <div className='space-y-2'>
             <Label>Select Time</Label>
             <div className='grid grid-cols-3 gap-2'>
-              {getTimeSlotsForDate(selectedDate).map((time) => (
+              {getFilteredTimeSlots(selectedDate, selectedTimeFrame).map((time) => (
                 <Button
                   key={time}
                   type='button'
@@ -227,7 +297,7 @@ const BookServiceButton = ({
           </div>
         )}
 
-        {/* Step 3: Contact Info (only show if time is selected) */}
+        {/* Step 4: Contact Info (only show if time is selected) */}
         {selectedTime && (
           <div className='space-y-4'>
             <div className='space-y-2'>
@@ -256,6 +326,9 @@ const BookServiceButton = ({
                   })}
               </p>
               <p className='text-sm text-muted-foreground'>
+                <strong>Time Frame:</strong> {selectedTimeFrame && TIME_FRAMES[selectedTimeFrame].label}
+              </p>
+              <p className='text-sm text-muted-foreground'>
                 <strong>Time:</strong> {selectedTime}
               </p>
               <p className='text-sm text-muted-foreground'>
@@ -269,7 +342,7 @@ const BookServiceButton = ({
                 className='flex-1'
                 disabled={isLoading || isCreatingBooking}
               >
-                {isLoading || isCreatingBooking ? 'Booking...' : 'Confirm Booking'}
+                {isLoading || isCreatingBooking ? 'Booking...' : 'Add to Cart'}
               </Button>
               <Button
                 type='button'
