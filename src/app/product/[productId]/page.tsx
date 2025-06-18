@@ -176,7 +176,7 @@ const Page = async ({ params }: PageProps) => {
                     className='mr-2 h-5 w-5 flex-shrink-0 text-gray-400'
                   />
                   <span className='text-muted-foreground hover:text-gray-700'>
-                    30 Day Satisfaction Guarantee
+                    
                   </span>
                 </div>
               </div>

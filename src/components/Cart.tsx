@@ -103,9 +103,9 @@ const Cart = () => {
               aria-hidden='true'
               className='relative mb-4 h-60 w-60 text-muted-foreground'>
               <Image
-                src='/hippo-empty-cart.png'
+                src='/icons/zonomo-logo.png'
                 fill
-                alt='empty shopping cart hippo'
+                alt='empty shopping cart zonomo logo'
               />
             </div>
             <div className='text-xl font-semibold'>
