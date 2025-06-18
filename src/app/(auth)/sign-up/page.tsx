@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 
@@ -23,6 +23,8 @@ import { ZodError } from 'zod'
 import { useRouter } from 'next/navigation'
 
 const Page = () => {
+  const router = useRouter()
+
   const {
     register,
     handleSubmit,
@@ -31,8 +33,6 @@ const Page = () => {
     resolver: zodResolver(AuthCredentialsValidator),
   })
 
-  const router = useRouter()
-
   const { mutate, isLoading } =
     trpc.auth.createPayloadUser.useMutation({
       onError: (err) => {
@@ -40,13 +40,11 @@ const Page = () => {
           toast.error(
             'This email is already in use. Sign in instead?'
           )
-
           return
         }
 
         if (err instanceof ZodError) {
           toast.error(err.issues[0].message)
-
           return
         }
 
@@ -74,15 +72,15 @@ const Page = () => {
       <div className='container relative flex pt-20 flex-col items-center justify-center lg:px-0'>
         <div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]'>
           <div className='flex flex-col items-center space-y-2 text-center'>
-            <Icons.logo className='h-20 w-20' />
-            <h1 className='text-2xl font-semibold tracking-tight'>
+            <Icons.logo className='h-20 w-20 text-blue-600' />
+            <h1 className='text-2xl font-semibold tracking-tight text-blue-600'>
               Create an account
             </h1>
 
             <Link
               className={buttonVariants({
                 variant: 'link',
-                className: 'gap-1.5',
+                className: 'gap-1.5 text-blue-600 hover:text-blue-700',
               })}
               href='/sign-in'>
               Already have an account? Sign-in
@@ -94,12 +92,13 @@ const Page = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className='grid gap-2'>
                 <div className='grid gap-1 py-2'>
-                  <Label htmlFor='email'>Email</Label>
+                  <Label htmlFor='email' className='text-blue-600'>Email</Label>
                   <Input
                     {...register('email')}
                     className={cn({
-                      'focus-visible:ring-red-500':
-                        errors.email,
+                      'focus-visible:ring-blue-500 border-blue-200':
+                        !errors.email,
+                      'focus-visible:ring-red-500': errors.email,
                     })}
                     placeholder='you@example.com'
                   />
@@ -111,13 +110,14 @@ const Page = () => {
                 </div>
 
                 <div className='grid gap-1 py-2'>
-                  <Label htmlFor='password'>Password</Label>
+                  <Label htmlFor='password' className='text-blue-600'>Password</Label>
                   <Input
                     {...register('password')}
                     type='password'
                     className={cn({
-                      'focus-visible:ring-red-500':
-                        errors.password,
+                      'focus-visible:ring-blue-500 border-blue-200':
+                        !errors.password,
+                      'focus-visible:ring-red-500': errors.password,
                     })}
                     placeholder='Password'
                   />
@@ -128,9 +128,24 @@ const Page = () => {
                   )}
                 </div>
 
-                <Button>Sign up</Button>
+                <Button 
+                  disabled={isLoading}
+                  className='bg-blue-600 hover:bg-blue-700 text-white'>
+                  {isLoading && (
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  )}
+                  Sign up
+                </Button>
               </div>
             </form>
+
+            <Button
+              onClick={() => router.push('/seller/sign-up')}
+              variant='outline'
+              className='border-blue-200 text-blue-600 hover:bg-blue-50'
+              disabled={isLoading}>
+              Create seller account instead
+            </Button>
           </div>
         </div>
       </div>

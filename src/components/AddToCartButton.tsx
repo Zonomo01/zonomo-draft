@@ -29,7 +29,7 @@ const AddToCartButton = ({
       }}
       size='lg'
       className='w-full'>
-      {isSuccess ? 'Added!' : 'Add to cart'}
+      {isSuccess ? 'Chatting' : 'Start Chat with Seller'}
     </Button>
   )
 }

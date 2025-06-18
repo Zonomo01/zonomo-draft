@@ -342,7 +342,7 @@ const BookServiceButton = ({
                 className='flex-1'
                 disabled={isLoading || isCreatingBooking}
               >
-                {isLoading || isCreatingBooking ? 'Booking...' : 'Add to Cart'}
+                {isLoading || isCreatingBooking ? 'Booking...' : 'Start Chat With Seller'}
               </Button>
               <Button
                 type='button'

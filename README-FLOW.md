@@ -1,4 +1,4 @@
-# DigitalHippo - Project Flow Diagrams
+# Zonomo - Project Flow Diagrams
 
 ## Project Structure Flow
 

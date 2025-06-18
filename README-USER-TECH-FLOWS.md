@@ -1,4 +1,4 @@
-# DigitalHippo - User Flows & Technical Implementation
+# Zonomo - User Flows & Technical Implementation
 
 ## User Types and Their Journeys
 
