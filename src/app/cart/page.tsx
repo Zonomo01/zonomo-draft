@@ -66,10 +66,10 @@ const Page = () => {
                   aria-hidden='true'
                   className='relative mb-4 h-40 w-40 text-muted-foreground'>
                   <Image
-                    src='/hippo-empty-cart.png'
+                    src='/icons/zonomo-logo.png'
                     fill
                     loading='eager'
-                    alt='empty shopping cart hippo'
+                    alt='empty shopping cart zonomo logo'
                   />
                 </div>
                 <h3 className='font-semibold text-2xl'>

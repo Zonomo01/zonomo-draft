@@ -1,4 +1,4 @@
-# DigitalHippo - User Flows and Marketplace Guide
+# Zonomo - User Flows and Marketplace Guide
 
 ## User Types and Their Journeys
 
@@ -245,4 +245,7 @@ graph TD
 - Security guidelines
 - Compliance information
 - Technical support
-- Emergency contacts 
+- Emergency contacts
+
+Welcome to Zonomo. Every service provider on our
+platform is carefully vetted to ensure the highest quality standards. 
