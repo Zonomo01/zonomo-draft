@@ -1,363 +1,175 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Product, User } from '@/payload-types'
-import { format, addDays, nextDay, parseISO, setHours, setMinutes, isBefore, addHours, isValid, isToday, isAfter } from 'date-fns'
-import { trpc } from '@/trpc/client'
-import { toast } from 'sonner'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { TRPCError } from '@trpc/server'
-import TimeFrameSelector, { TIME_FRAMES, TimeFrame } from './TimeFrameSelector'
-import { useCart } from '@/hooks/use-cart'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Calendar, Clock, MapPin, User } from "lucide-react";
+import { useCart } from "@/hooks/use-cart";
+import { Product } from "@/payload-types";
 
 interface BookServiceButtonProps {
   product: Product;
-  user: User | null;
-  availability: Product['availability'];
 }
 
-const BookServiceButton = ({
-  product,
-  user,
-  availability: productAvailability,
-}: BookServiceButtonProps) => {
-  const [showForm, setShowForm] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame | null>(null)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+export default function BookServiceButton({ product }: BookServiceButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const { addItem } = useCart();
+  const router = useRouter();
 
-  const { addItem } = useCart()
+  const timeSlots = [
+    "09:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "01:00 PM",
+    "02:00 PM",
+    "03:00 PM",
+    "04:00 PM",
+    "05:00 PM",
+    "06:00 PM",
+  ];
 
-  const { mutate: createBooking, isLoading: isCreatingBooking } = trpc.booking.createBooking.useMutation({
-    onSuccess: () => {
-      toast.success('Booking request sent successfully!')
-      setShowForm(false)
-      setSelectedDate(undefined)
-      setSelectedTime(null)
-      setName('')
-      setIsLoading(false)
-    },
-    onError: (err: TRPCError) => {
-      toast.error('Failed to send booking request.', {
-        description: err.message,
-      })
-      setIsLoading(false)
-    },
-  })
+  const handleBookService = async () => {
+    if (!selectedDate || !selectedTime) {
+      alert("Please select date and time");
+      return;
+    }
 
-  const WEEK_DAYS = [
-    'sunday',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-  ] as const;
+    setIsLoading(true);
 
-  // Helper to convert day name to date-fns day index
-  const getDayIndex = (dayName: string) => {
-    const index = WEEK_DAYS.indexOf(dayName.toLowerCase() as typeof WEEK_DAYS[number]);
-    return index !== -1 ? index : -1;
+    try {
+      // Add service to cart with booking details
+      addItem(product, selectedDate, selectedTime, "MORNING");
+
+      // Navigate to cart/checkout
+      router.push("/cart");
+    } catch (error) {
+      console.error("Error booking service:", error);
+      alert("Failed to book service. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setShowBookingModal(false);
+    }
   };
 
-  // Generate upcoming dates based on available days
-  const getAvailableCalendarDates = () => {
-    const dates: Date[] = []
-    const today = new Date()
-    today.setHours(0, 0, 0, 0) // Normalize to start of day
+  const openBookingModal = () => {
+    setShowBookingModal(true);
+  };
 
-    const availableDayNames = Array.from(new Set(productAvailability?.map(a => a.day))) || []
-
-    // Look for upcoming dates for the next 12 months
-    for (let i = 0; i < 365; i++) { // Check next 365 days for available days
-      const currentDay = addDays(today, i)
-      const dayName = format(currentDay, 'eeee').toLowerCase()
-
-      if (availableDayNames.includes(dayName as Product['availability'][number]['day'])) {
-        dates.push(currentDay)
-      }
+  // Get next 7 days for date selection
+  const getAvailableDates = () => {
+    const dates = [];
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      dates.push(date.toISOString().split("T")[0]);
     }
-    return dates
-  }
-
-  const availableCalendarDates = getAvailableCalendarDates()
-
-  const getTimeSlotsForDate = (date: Date) => {
-    const dayOfWeek = format(date, 'eeee').toLowerCase();
-    
-    if (!WEEK_DAYS.includes(dayOfWeek as typeof WEEK_DAYS[number])) {
-      return [];
-    }
-
-    const typedDayOfWeek = dayOfWeek as Product['availability'][number]['day'];
-    const dayAvailability = productAvailability?.find((avail) => avail.day === typedDayOfWeek)
-
-    if (!dayAvailability || dayAvailability.timeSlots.length === 0) {
-      return []
-    }
-
-    const slots: string[] = []
-    dayAvailability.timeSlots.forEach(range => {
-      const [startHourStr, startMinuteStr] = range.startTime.split(':').map(s => s.padStart(2, '0'))
-      const [endHourStr, endMinuteStr] = range.endTime.split(':').map(s => s.padStart(2, '0'))
-
-      let current = setMinutes(setHours(date, parseInt(startHourStr || '00')), parseInt(startMinuteStr || '00'))
-      const end = setMinutes(setHours(date, parseInt(endHourStr || '00')), parseInt(endMinuteStr || '00'))
-
-      const durationInHours = product.duration || 1;
-
-      while (isBefore(current, end)) {
-        const potentialNext = addHours(current, durationInHours);
-        const actualSlotEnd = isAfter(potentialNext, end) ? end : potentialNext;
-
-        if (isBefore(current, actualSlotEnd)) { // Ensure the slot has a positive duration
-          slots.push(`${format(current, 'hh:mm a')} - ${format(actualSlotEnd, 'hh:mm a')}`)
-        }
-        current = actualSlotEnd // Advance current to the end of the slot just added
-      }
-    })
-    console.log(`Generated slots for ${format(date, 'yyyy-MM-dd')}:`, slots);
-    return slots
-  }
-
-  const getAvailableTimeFrames = (date: Date) => {
-    const slots = getTimeSlotsForDate(date)
-    const timeFrames = {
-      MORNING: 0,
-      AFTERNOON: 0,
-      EVENING: 0,
-    }
-
-    slots.forEach(slot => {
-      const [startTime] = slot.split(' - ')
-      const hour = parseInt(startTime.split(':')[0])
-      const isPM = startTime.toLowerCase().includes('pm')
-      const hour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour)
-
-      for (const frameKey in TIME_FRAMES) {
-        const timeFrame = frameKey as TimeFrame
-        const { start, end } = TIME_FRAMES[timeFrame]
-        const [startHour] = start.split(':')
-        const [endHour] = end.split(':')
-
-        if (hour24 >= parseInt(startHour) && hour24 < parseInt(endHour)) {
-          timeFrames[timeFrame]++
-          break // Assign to the first matching time frame
-        }
-      }
-    })
-
-    console.log(`Available time frames for ${format(date, 'yyyy-MM-dd')}:`, timeFrames);
-    return timeFrames
-  }
-
-  const getFilteredTimeSlots = (date: Date, timeFrame: TimeFrame) => {
-    const slots = getTimeSlotsForDate(date)
-    const { start, end } = TIME_FRAMES[timeFrame]
-    const [startHour] = start.split(':')
-    const [endHour] = end.split(':')
-
-    return slots.filter(slot => {
-      const [startTime] = slot.split(' - ')
-      const hour = parseInt(startTime.split(':')[0])
-      const isPM = startTime.toLowerCase().includes('pm')
-      const hour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour)
-
-      return hour24 >= parseInt(startHour) && hour24 < parseInt(endHour)
-    })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    if (!user) {
-      toast.error('You must be logged in to book a service.')
-      setIsLoading(false)
-      return
-    }
-
-    if (!selectedDate || !selectedTime || !selectedTimeFrame) {
-      toast.error('Please select a date, time frame, and time slot.')
-      setIsLoading(false)
-      return
-    }
-
-    if (!name) {
-      toast.error('Please enter your name.')
-      setIsLoading(false)
-      return
-    }
-
-    addItem(product, format(selectedDate, 'yyyy-MM-dd'), selectedTime, selectedTimeFrame)
-    toast.success('Service added to cart!')
-    setShowForm(false)
-    setSelectedDate(undefined)
-    setSelectedTimeFrame(null)
-    setSelectedTime(null)
-    setName('')
-    setIsLoading(false)
-  }
-
-  if (!showForm) {
-    return (
-      <Button
-        onClick={() => setShowForm(true)}
-        className='w-full'
-        size='lg'
-      >
-        Book Service
-      </Button>
-    )
-  }
+    return dates;
+  };
 
   return (
-    <div className='space-y-4'>
-      <form onSubmit={handleSubmit} className='space-y-4'>
-        {/* Step 1: Select Date */}
-        <div className='space-y-2'>
-          <Label>Select Date</Label>
-          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  setSelectedDate(date)
-                  setSelectedTimeFrame(null)
-                  setSelectedTime(null)
-                  setIsCalendarOpen(false)
-                }}
-                initialFocus
-                disabled={(date) => {
-                  const formattedDay = format(date, 'eeee').toLowerCase();
-                  const isAvailableDay = productAvailability?.some(avail => avail.day === formattedDay);
-                  const isPastDate = isBefore(date, new Date());
-                  return !isAvailableDay || isPastDate && !isToday(date);
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+    <>
+      <button
+        onClick={openBookingModal}
+        className="w-full purple-button rounded-xl py-3 px-6 text-white font-medium hover:scale-105 transition-transform"
+      >
+        Book Now - ${product.price}/hr
+      </button>
 
-        {/* Step 2: Select Time Frame (only show if date is selected) */}
-        {selectedDate && (
-          <div className='space-y-2'>
-            <Label>Select Time Frame</Label>
-            <TimeFrameSelector
-              selectedTimeFrame={selectedTimeFrame}
-              onTimeFrameSelect={(timeFrame) => {
-                setSelectedTimeFrame(timeFrame)
-                setSelectedTime(null)
-              }}
-              availableSlots={getAvailableTimeFrames(selectedDate)}
-            />
-          </div>
-        )}
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-white text-xl font-bold mb-6">
+              Book {product.name}
+            </h3>
 
-        {/* Step 3: Select Time Slot (only show if time frame is selected) */}
-        {selectedDate && selectedTimeFrame && (
-          <div className='space-y-2'>
-            <Label>Select Time</Label>
-            <div className='grid grid-cols-3 gap-2'>
-              {getFilteredTimeSlots(selectedDate, selectedTimeFrame).map((time) => (
-                <Button
-                  key={time}
-                  type='button'
-                  variant={selectedTime === time ? 'default' : 'outline'}
-                  onClick={() => setSelectedTime(time)}
-                  className='w-full'
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Contact Info (only show if time is selected) */}
-        {selectedTime && (
-          <div className='space-y-4'>
-            <div className='space-y-2'>
-              <Label>Your Name</Label>
-              <Input
-                type='text'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+            {/* Service Details */}
+            <div className="review-card rounded-xl p-4 mb-6">
+              <h4 className="text-white font-medium mb-2">{product.name}</h4>
+              <p className="text-gray-400 text-sm mb-2">
+                {product.description}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-purple-400 font-semibold">
+                  ${product.price}/hr
+                </span>
+                <span className="text-gray-400 text-sm">
+                  {product.duration}h duration
+                </span>
+              </div>
             </div>
 
-            {/* Booking Summary */}
-            <div className='rounded-lg border p-4 space-y-2'>
-              <h3 className='font-medium'>Booking Summary</h3>
-              <p className='text-sm text-muted-foreground'>
-                <strong>Service:</strong> {product.name}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                <strong>Date:</strong>{' '}
-                {selectedDate &&
-                  new Date(selectedDate).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                <strong>Time Frame:</strong> {selectedTimeFrame && TIME_FRAMES[selectedTimeFrame].label}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                <strong>Time:</strong> {selectedTime}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                <strong>Email:</strong> {user?.email}
-              </p>
+            {/* Date Selection */}
+            <div className="mb-6">
+              <label className="text-white font-medium mb-3 flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Select Date
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {getAvailableDates().map((date) => (
+                  <button
+                    key={date}
+                    onClick={() => setSelectedDate(date)}
+                    className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                      selectedDate === date
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    {new Date(date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className='flex gap-2'>
-              <Button
-                type='submit'
-                className='flex-1'
-                disabled={isLoading || isCreatingBooking}
-              >
-                {isLoading || isCreatingBooking ? 'Booking...' : 'Start Chat With Seller'}
-              </Button>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setShowForm(false)}
-                className='flex-1'
+            {/* Time Selection */}
+            <div className="mb-6">
+              <label className="text-white font-medium mb-3 flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Select Time
+              </label>
+              <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                {timeSlots.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => setSelectedTime(time)}
+                    className={`p-2 rounded-lg text-xs font-medium transition-colors ${
+                      selectedTime === time
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="flex-1 bg-gray-700 text-white py-3 rounded-xl font-medium hover:bg-gray-600 transition-colors"
               >
                 Cancel
-              </Button>
+              </button>
+              <button
+                onClick={handleBookService}
+                disabled={isLoading || !selectedDate || !selectedTime}
+                className="flex-1 purple-button py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Booking..." : "Confirm Booking"}
+              </button>
             </div>
           </div>
-        )}
-      </form>
-    </div>
-  )
+        </div>
+      )}
+    </>
+  );
 }
-
-export default BookServiceButton

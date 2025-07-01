@@ -1,49 +1,54 @@
-'use client'
+"use client";
 
-import { PRODUCT_CATEGORIES } from '@/config'
-import { useOnClickOutside } from '@/hooks/use-on-click-outside'
-import { useEffect, useRef, useState } from 'react'
-import NavItem from './NavItem'
+import { PRODUCT_CATEGORIES } from "@/config";
+import { useOnClickOutside } from "@/hooks/use-on-click-outside";
+import { useEffect, useRef, useState } from "react";
+import NavItem from "./NavItem";
 
 const NavItems = () => {
-  const [activeIndex, setActiveIndex] = useState<
-    null | number
-  >(null)
+  const [activeIndex, setActiveIndex] = useState<null | number>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setActiveIndex(null)
-      }
-    }
+    setIsMounted(true);
+  }, []);
 
-    document.addEventListener('keydown', handler)
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveIndex(null);
+      }
+    };
+
+    document.addEventListener("keydown", handler);
 
     return () => {
-      document.removeEventListener('keydown', handler)
-    }
-  }, [])
+      document.removeEventListener("keydown", handler);
+    };
+  }, [isMounted]);
 
-  const isAnyOpen = activeIndex !== null
+  const isAnyOpen = activeIndex !== null;
 
-  const navRef = useRef<HTMLDivElement | null>(null)
+  const navRef = useRef<HTMLDivElement | null>(null);
 
-  useOnClickOutside(navRef, () => setActiveIndex(null))
+  useOnClickOutside(navRef, () => setActiveIndex(null));
 
   return (
-    <div className='flex gap-4 h-full' ref={navRef}>
+    <div className="flex gap-4 h-full" ref={navRef}>
       {PRODUCT_CATEGORIES.map((category, i) => {
         const handleOpen = () => {
           if (activeIndex === i) {
-            setActiveIndex(null)
+            setActiveIndex(null);
           } else {
-            setActiveIndex(i)
+            setActiveIndex(i);
           }
-        }
+        };
 
-        const close = () => setActiveIndex(null)
+        const close = () => setActiveIndex(null);
 
-        const isOpen = i === activeIndex
+        const isOpen = i === activeIndex;
 
         return (
           <NavItem
@@ -54,10 +59,10 @@ const NavItems = () => {
             key={category.value}
             isAnyOpen={isAnyOpen}
           />
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default NavItems
+export default NavItems;
