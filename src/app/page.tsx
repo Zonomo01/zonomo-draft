@@ -49,7 +49,7 @@ export default function Home() {
             <span className='text-black'>house services</span>.
           </h1>
           <p className='mt-6 text-lg max-w-prose text-muted-foreground'>
-            Welcome to DigitalHippo. Every service provider on our
+            Welcome to Zonomo. Every service provider on our
             platform is carefully vetted to ensure the highest quality standards.
           </p>
           <div className='flex flex-col sm:flex-row gap-4 mt-6'>

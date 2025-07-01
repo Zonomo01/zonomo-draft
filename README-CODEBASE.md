@@ -1,7 +1,7 @@
-# DigitalHippo - Codebase Structure
+# Zonomo - Codebase Structure
 
 ## Project Overview
-DigitalHippo is a full-stack e-commerce marketplace built with modern technologies. This document explains the structure and purpose of each file and directory in the project.
+Zonomo is a full-stack e-commerce marketplace built with modern technologies. This document explains the structure and purpose of each file and directory in the project.
 
 ## Directory Structure
 

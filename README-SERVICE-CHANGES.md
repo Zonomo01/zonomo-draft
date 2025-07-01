@@ -1,6 +1,6 @@
 # Service-Related Changes Documentation
 
-This document outlines the changes made to adapt the DigitalHippo marketplace from selling digital products to offering house services, focusing on the modifications to the `Products` collection and related configurations.
+This document outlines the changes made to adapt the Zonomo marketplace from selling digital products to offering house services, focusing on the modifications to the `Products` collection and related configurations.
 
 ## Products Collection Transformation
 
