@@ -1,16 +1,22 @@
-import MaxWidthWrapper from '@/components/MaxWidthWrapper'
-import ProductReel from '@/components/ProductReel'
-import ServiceCategories from '@/components/ServiceCategories'
+'use client';
+
+import MaxWidthWrapper from '@/components/MaxWidthWrapper';
+import ProductReel from '@/components/ProductReel';
+import ServiceCategories from '@/components/ServiceCategories';
 import {
   Button,
   buttonVariants,
-} from '@/components/ui/button'
+} from '@/components/ui/button';
 import {
   ArrowDownToLine,
   CheckCircle,
   Leaf,
-} from 'lucide-react'
-import Link from 'next/link'
+} from 'lucide-react';
+import Link from 'next/link';
+import VapiWidget from '@/components/VapiWidget';
+
+const apiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY!;
+const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!;
 
 const perks = [
   {
@@ -31,7 +37,7 @@ const perks = [
     description:
       "We've pledged 1% of sales to the preservation and restoration of the natural environment.",
   },
-]
+];
 
 export default function Home() {
   return (
@@ -40,19 +46,14 @@ export default function Home() {
         <div className='py-20 mx-auto text-center flex flex-col items-center max-w-3xl'>
           <h1 className='text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl'>
             Your marketplace for high-quality{' '}
-            <span className='text-black'>
-              house services
-            </span>
-            .
+            <span className='text-black'>house services</span>.
           </h1>
           <p className='mt-6 text-lg max-w-prose text-muted-foreground'>
             Welcome to DigitalHippo. Every service provider on our
             platform is carefully vetted to ensure the highest quality standards.
           </p>
           <div className='flex flex-col sm:flex-row gap-4 mt-6'>
-            <Link
-              href='/products'
-              className={buttonVariants()}>
+            <Link href='/products' className={buttonVariants()}>
               Browse Services
             </Link>
             <Button variant='ghost'>
@@ -96,6 +97,9 @@ export default function Home() {
           </div>
         </MaxWidthWrapper>
       </section>
+
+      
+      <VapiWidget apiKey={apiKey} assistantId={assistantId} />
     </>
-  )
+  );
 }
