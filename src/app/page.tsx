@@ -19,7 +19,7 @@ export default function Home() {
     if (!isMounted) return;
 
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroBanners.length);
+      setCurrentSlide((prev) => (prev + 1) % 2);
     }, 5000);
     return () => clearInterval(timer);
   }, [isMounted]);
