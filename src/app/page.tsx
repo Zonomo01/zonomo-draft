@@ -1,10 +1,38 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Star, Users, ArrowRight } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Star, Users, ArrowRight, ArrowDownToLine, CheckCircle, Leaf } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import MaxWidthWrapper from '@/components/MaxWidthWrapper';
+import ProductReel from '@/components/ProductReel';
+import ServiceCategories from '@/components/ServiceCategories';
+import { Button, buttonVariants } from '@/components/ui/button';
+import VapiWidget from '@/components/VapiWidget';
+
+const apiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY!;
+const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!;
+
+const perks = [
+  {
+    name: 'Quick & Easy Booking',
+    Icon: ArrowDownToLine,
+    description: 'Find and book the perfect service provider in minutes.',
+  },
+  {
+    name: 'Guaranteed Quality',
+    Icon: CheckCircle,
+    description:
+      'Every service provider on our platform is verified to ensure the highest quality standards. Not happy? We offer a satisfaction guarantee.',
+  },
+  {
+    name: 'For the Planet',
+    Icon: Leaf,
+    description:
+      "We've pledged 1% of sales to the preservation and restoration of the natural environment.",
+  },
+];
 
 export default function Home() {
   const { isDarkMode } = useTheme();
@@ -187,17 +215,47 @@ export default function Home() {
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
-        isDarkMode ? "bg-black text-white" : "bg-black text-white"
+        isDarkMode ? "bg-black text-white" : "bg-white text-gray-900"
       }`}
     >
+      {/* Hero Section */}
+      <MaxWidthWrapper>
+        <div className='py-20 mx-auto text-center flex flex-col items-center max-w-3xl'>
+          <h1 className={`text-4xl font-bold tracking-tight sm:text-6xl ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}>
+            Your marketplace for high-quality{' '}
+            <span className={isDarkMode ? "text-blue-400" : "text-black"}>house services</span>.
+          </h1>
+          <p className={`mt-6 text-lg max-w-prose ${
+            isDarkMode ? "text-gray-300" : "text-muted-foreground"
+          }`}>
+            Welcome to Zonomo. Every service provider on our
+            platform is carefully vetted to ensure the highest quality standards.
+          </p>
+          <div className='flex flex-col sm:flex-row gap-4 mt-6'>
+            <Link href='/products' className={buttonVariants()}>
+              Browse Services
+            </Link>
+            <Button variant='ghost'>
+              Our quality promise &rarr;
+            </Button>
+          </div>
+        </div>
+      </MaxWidthWrapper>
+
       {/* Hero Banner Carousel */}
       <div className="px-4 pt-6 pb-6">
         <div className="max-w-4xl mx-auto">
           <div
-            className="relative rounded-2xl overflow-hidden p-6 mb-8 border-2 border-white/70 hover:border-white transition-all duration-300"
+            className={`relative rounded-2xl overflow-hidden p-6 mb-8 border-2 ${
+              isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+            } transition-all duration-300`}
             style={{
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+              boxShadow: isDarkMode 
+                ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                : `0 0 10px rgba(0, 0, 0, 0.1)`,
             }}
           >
             <div className="flex items-center justify-between">
@@ -240,16 +298,50 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Perks Section */}
+      <section className={`border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"} bg-gray-50 ${isDarkMode ? "bg-gray-900" : ""}`}>
+        <MaxWidthWrapper className='py-20'>
+          <div className='grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 lg:gap-y-0'>
+            {perks.map((perk) => (
+              <div
+                key={perk.name}
+                className='text-center md:flex md:items-start md:text-left lg:block lg:text-center'>
+                <div className='md:flex-shrink-0 flex justify-center'>
+                  <div className='h-16 w-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-900'>
+                    {<perk.Icon className='w-1/3 h-1/3' />}
+                  </div>
+                </div>
+
+                <div className='mt-6 md:ml-4 md:mt-0 lg:ml-0 lg:mt-6'>
+                  <h3 className={`text-base font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    {perk.name}
+                  </h3>
+                  <p className={`mt-3 text-sm ${isDarkMode ? "text-gray-300" : "text-muted-foreground"}`}>
+                    {perk.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </MaxWidthWrapper>
+      </section>
+
       {/* Top Picks For You Section */}
       <div className="px-4 mb-8">
-        <h3 className="text-xl font-medium mb-6">Top Picks For You</h3>
+        <h3 className={`text-xl font-medium mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          Top Picks For You
+        </h3>
         <div className="flex gap-4 overflow-x-auto pb-4">
           {topPicksServices.map((service, index) => (
             <Link key={index} href={service.href}>
               <div
-                className={`relative rounded-3xl overflow-hidden p-6 min-w-[280px] h-40 ${service.bgColor} flex items-center justify-between border-2 border-white/70 hover:border-white transition-all duration-300`}
+                className={`relative rounded-3xl overflow-hidden p-6 min-w-[280px] h-40 ${service.bgColor} flex items-center justify-between border-2 ${
+                  isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+                } transition-all duration-300`}
                 style={{
-                  boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+                  boxShadow: isDarkMode 
+                    ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                    : `0 0 10px rgba(0, 0, 0, 0.1)`,
                 }}
               >
                 <div className="flex-1">
@@ -291,13 +383,15 @@ export default function Home() {
 
       {/* Horizontal Line Separator */}
       <div className="px-4 mb-8">
-        <div className="w-full h-px bg-white/20"></div>
+        <div className={`w-full h-px ${isDarkMode ? "bg-white/20" : "bg-gray-200"}`}></div>
       </div>
 
       {/* All Category Section */}
       <div className="px-4 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-medium">All Category</h3>
+          <h3 className={`text-xl font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            All Category
+          </h3>
           <Link href="/products" className="text-sm font-bold text-blue-600">
             SEE ALL
           </Link>
@@ -308,9 +402,13 @@ export default function Home() {
               <div
                 className={`relative rounded-2xl overflow-hidden p-2 h-44 ${
                   isDarkMode ? "bg-gray-800/20" : "bg-white"
-                } backdrop-blur-sm border-2 border-white/70 shadow-sm hover:border-white transition-all duration-300`}
+                } backdrop-blur-sm border-2 ${
+                  isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+                } shadow-sm transition-all duration-300`}
                 style={{
-                  boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+                  boxShadow: isDarkMode 
+                    ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                    : `0 0 10px rgba(0, 0, 0, 0.1)`,
                 }}
               >
                 <div className="relative w-full h-28 mb-2 rounded-xl overflow-hidden">
@@ -322,7 +420,9 @@ export default function Home() {
                   />
                 </div>
                 <div className="text-center px-1">
-                  <h4 className="font-medium text-xs mb-1 leading-tight">
+                  <h4 className={`font-medium text-xs mb-1 leading-tight ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}>
                     {category.name}
                   </h4>
                   <p className="text-xs font-bold text-blue-600">
@@ -338,7 +438,9 @@ export default function Home() {
       {/* Extra Service Categories */}
       <div className="px-4 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-medium">More Services</h3>
+          <h3 className={`text-xl font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            More Services
+          </h3>
           <Link href="/products" className="text-sm font-bold text-blue-600">
             VIEW ALL
           </Link>
@@ -349,9 +451,13 @@ export default function Home() {
               <div
                 className={`relative rounded-2xl overflow-hidden p-2 h-44 ${
                   isDarkMode ? "bg-gray-800/20" : "bg-white"
-                } backdrop-blur-sm border-2 border-white/70 shadow-sm hover:border-white transition-all duration-300`}
+                } backdrop-blur-sm border-2 ${
+                  isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+                } shadow-sm transition-all duration-300`}
                 style={{
-                  boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+                  boxShadow: isDarkMode 
+                    ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                    : `0 0 10px rgba(0, 0, 0, 0.1)`,
                 }}
               >
                 <div className="relative w-full h-28 mb-2 rounded-xl overflow-hidden">
@@ -363,7 +469,9 @@ export default function Home() {
                   />
                 </div>
                 <div className="text-center px-1">
-                  <h4 className="font-medium text-xs mb-1 leading-tight">
+                  <h4 className={`font-medium text-xs mb-1 leading-tight ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}>
                     {category.name}
                   </h4>
                   <p className="text-xs font-bold text-blue-600">
@@ -378,14 +486,22 @@ export default function Home() {
 
       {/* Customer Reviews Section */}
       <div className="px-4 mb-8">
-        <h3 className="text-xl font-medium mb-6">Customer Reviews</h3>
+        <h3 className={`text-xl font-medium mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          Customer Reviews
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="rounded-2xl p-4 bg-gray-800/20 border-2 border-white/70 hover:border-white transition-all duration-300"
+              className={`rounded-2xl p-4 ${
+                isDarkMode ? "bg-gray-800/20" : "bg-white"
+              } border-2 ${
+                isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+              } transition-all duration-300`}
               style={{
-                boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+                boxShadow: isDarkMode 
+                  ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                  : `0 0 10px rgba(0, 0, 0, 0.1)`,
               }}
             >
               <div className="flex items-start space-x-3">
@@ -396,7 +512,9 @@ export default function Home() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <h5 className="font-medium text-sm text-white">
+                    <h5 className={`font-medium text-sm ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}>
                       {review.name}
                     </h5>
                     <div className="flex">
@@ -408,7 +526,9 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-300">{review.comment}</p>
+                  <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                    {review.comment}
+                  </p>
                 </div>
               </div>
             </div>
@@ -420,10 +540,14 @@ export default function Home() {
       <div className="px-4 pb-8">
         <div className="max-w-4xl mx-auto">
           <div
-            className="rounded-2xl p-6 text-center border-2 border-white/70 hover:border-white transition-all duration-300"
+            className={`rounded-2xl p-6 text-center border-2 ${
+              isDarkMode ? "border-white/70 hover:border-white" : "border-gray-200 hover:border-gray-300"
+            } transition-all duration-300`}
             style={{
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              boxShadow: `0 0 10px rgba(255, 255, 255, 0.5)`,
+              boxShadow: isDarkMode 
+                ? `0 0 10px rgba(255, 255, 255, 0.5)` 
+                : `0 0 10px rgba(0, 0, 0, 0.1)`,
             }}
           >
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
@@ -441,6 +565,17 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Product Reel and Service Categories */}
+      <ProductReel
+        query={{ sort: 'desc', limit: 4 }}
+        href='/products?sort=recent'
+        title='Brand new'
+      />
+      
+      <ServiceCategories />
+      
+      <VapiWidget apiKey={apiKey} assistantId={assistantId} />
     </div>
   );
 }
