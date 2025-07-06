@@ -13,9 +13,8 @@ export interface Config {
     media: Media;
     product_files: ProductFile;
     orders: Order;
-    bookings: Booking;
-    'payload-preferences': PayloadPreference;
-    'payload-migrations': PayloadMigration;
+    "payload-preferences": PayloadPreference;
+    "payload-migrations": PayloadMigration;
   };
   globals: {};
 }
@@ -23,7 +22,7 @@ export interface User {
   id: string;
   products?: (string | Product)[] | null;
   product_files?: (string | ProductFile)[] | null;
-  role: 'admin' | 'provider' | 'user';
+  role: "admin" | "provider" | "user";
   providerDetails?: {
     businessName?: string | null;
     phoneNumber?: string | null;
@@ -64,12 +63,25 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  category: 'cleaning' | 'plumbing' | 'electrical' | 'carpentry' | 'painting' | 'gardening';
+  category:
+    | "cleaning"
+    | "plumbing"
+    | "electrical"
+    | "carpentry"
+    | "painting"
+    | "gardening";
   serviceLocation: string;
-  serviceType: 'one_time' | 'recurring';
+  serviceType: "one_time" | "recurring";
   duration: number;
   availability: {
-    day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+    day:
+      | "monday"
+      | "tuesday"
+      | "wednesday"
+      | "thursday"
+      | "friday"
+      | "saturday"
+      | "sunday";
     timeSlots: {
       startTime: string;
       endTime: string;
@@ -78,7 +90,7 @@ export interface Product {
     id?: string | null;
   }[];
   product_files?: (string | null) | ProductFile;
-  approvedForSale?: ('pending' | 'approved' | 'denied') | null;
+  approvedForSale?: ("pending" | "approved" | "denied") | null;
   priceId?: string | null;
   stripeId?: string | null;
   images: {
@@ -146,23 +158,10 @@ export interface Order {
   updatedAt: string;
   createdAt: string;
 }
-export interface Booking {
-  id: string;
-  service: string | Product;
-  customer: string | User;
-  provider: string | User;
-  requestedDate: string;
-  requestedTimeSlot: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  totalPrice: number;
-  customerNotes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
 export interface PayloadPreference {
   id: string;
   user: {
-    relationTo: 'users';
+    relationTo: "users";
     value: string | User;
   };
   key?: string | null;
@@ -186,7 +185,6 @@ export interface PayloadMigration {
   createdAt: string;
 }
 
-
-declare module 'payload' {
-  export interface GeneratedTypes extends Config {}
+declare module "payload" {
+  export interface PayloadGeneratedTypes extends Config {}
 }

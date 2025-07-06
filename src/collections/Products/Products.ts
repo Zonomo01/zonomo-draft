@@ -1,87 +1,80 @@
 import {
   AfterChangeHook,
   BeforeChangeHook,
-} from 'payload/dist/collections/config/types'
-import { PRODUCT_CATEGORIES } from '../../config'
-import { Access, CollectionConfig } from 'payload/types'
-import { Product, User } from '../../payload-types'
-import { stripe } from '../../lib/stripe'
+} from "payload/dist/collections/config/types";
+import { PRODUCT_CATEGORIES } from "../../config";
+import { Access, CollectionConfig } from "payload/types";
+import { Product, User } from "../../payload-types";
+import { stripe } from "../../lib/stripe";
 
-const addUser: BeforeChangeHook<Product> = async ({
-  req,
-  data,
-}) => {
-  const user = req.user
+const addUser: BeforeChangeHook<Product> = async ({ req, data }) => {
+  const user = req.user;
 
-  return { ...data, user: user.id }
-}
+  return { ...data, user: user.id };
+};
 
-const syncUser: AfterChangeHook<Product> = async ({
-  req,
-  doc,
-}) => {
-  const fullUser = await req.payload.findByID({
-    collection: 'users',
+const syncUser: AfterChangeHook<Product> = async ({ req, doc }) => {
+  const fullUser = (await req.payload.findByID({
+    collection: "users",
     id: req.user.id,
-  })
+  })) as unknown as User | null;
 
-  if (fullUser && typeof fullUser === 'object') {
-    const { products } = fullUser
+  if (fullUser && typeof fullUser === "object") {
+    const products = fullUser.products || [];
 
-    const allIDs = [
-      ...(products?.map((product) =>
-        typeof product === 'object' ? product.id : product
-      ) || []),
-    ]
+    const allIDs = products.map((product: string | Product) =>
+      typeof product === "object" ? product.id : product
+    );
 
     const createdProductIDs = allIDs.filter(
-      (id, index) => allIDs.indexOf(id) === index
-    )
+      (id: string, index: number) => allIDs.indexOf(id) === index
+    );
 
-    const dataToUpdate = [...createdProductIDs, doc.id]
+    const dataToUpdate = [...createdProductIDs, doc.id];
 
     await req.payload.update({
-      collection: 'users',
+      collection: "users",
       id: fullUser.id,
       data: {
         products: dataToUpdate,
       },
-    })
+    });
   }
-}
+};
 
 const isAdminOrHasAccess =
   (): Access =>
   ({ req: { user: _user } }) => {
-    const user = _user as User | undefined
+    const user = _user as User | undefined;
 
-    if (!user) return false
-    if (user.role === 'admin') return true
+    if (!user) return false;
+    if (user.role === "admin") return true;
 
-    const userProductIDs = (user.products || []).reduce<
-      Array<string>
-    >((acc, product) => {
-      if (!product) return acc
-      if (typeof product === 'string') {
-        acc.push(product)
-      } else {
-        acc.push(product.id)
-      }
+    const userProductIDs = (user.products || []).reduce<Array<string>>(
+      (acc, product) => {
+        if (!product) return acc;
+        if (typeof product === "string") {
+          acc.push(product);
+        } else {
+          acc.push(product.id);
+        }
 
-      return acc
-    }, [])
+        return acc;
+      },
+      []
+    );
 
     return {
       id: {
         in: userProductIDs,
       },
-    }
-  }
+    };
+  };
 
 export const Products: CollectionConfig = {
-  slug: 'products',
+  slug: "products",
   admin: {
-    useAsTitle: 'name',
+    useAsTitle: "name",
   },
   access: {
     read: isAdminOrHasAccess(),
@@ -93,50 +86,48 @@ export const Products: CollectionConfig = {
     beforeChange: [
       addUser,
       async (args) => {
-        if (args.operation === 'create') {
-          const data = args.data as Product
+        if (args.operation === "create") {
+          const data = args.data as Product;
 
-          const createdProduct =
-            await stripe.products.create({
-              name: data.name,
-              default_price_data: {
-                currency: 'USD',
-                unit_amount: Math.round(data.price * 100),
-              },
-            })
+          const createdProduct = await stripe.products.create({
+            name: data.name,
+            default_price_data: {
+              currency: "USD",
+              unit_amount: Math.round(data.price * 100),
+            },
+          });
 
           const updated: Product = {
             ...data,
             stripeId: createdProduct.id,
             priceId: createdProduct.default_price as string,
-          }
+          };
 
-          return updated
-        } else if (args.operation === 'update') {
-          const data = args.data as Product
+          return updated;
+        } else if (args.operation === "update") {
+          const data = args.data as Product;
 
-          const updatedProduct =
-            await stripe.products.update(data.stripeId!, {
-              name: data.name,
-              default_price: data.priceId!,
-            })
+          const updatedProduct = await stripe.products.update(data.stripeId!, {
+            name: data.name,
+            default_price: data.priceId!,
+          });
 
           const updated: Product = {
             ...data,
             stripeId: updatedProduct.id,
             priceId: updatedProduct.default_price as string,
-          }
+          };
 
-          return updated
+          return updated;
         }
       },
     ],
   },
   fields: [
     {
-      name: 'user',
-      type: 'relationship',
-      relationTo: 'users',
+      name: "user",
+      type: "relationship",
+      relationTo: "users",
       required: true,
       hasMany: false,
       admin: {
@@ -144,132 +135,136 @@ export const Products: CollectionConfig = {
       },
     },
     {
-      name: 'name',
-      label: 'Service Name',
-      type: 'text',
+      name: "name",
+      label: "Service Name",
+      type: "text",
       required: true,
     },
     {
-      name: 'description',
-      type: 'textarea',
-      label: 'Service details',
+      name: "description",
+      type: "textarea",
+      label: "Service details",
       required: true,
     },
     {
-      name: 'price',
-      label: 'Price per hour (USD)',
+      name: "price",
+      label: "Price per hour (USD)",
       min: 0,
       max: 1000,
-      type: 'number',
+      type: "number",
       required: true,
     },
     {
-      name: 'category',
-      label: 'Service Category',
-      type: 'select',
-      options: PRODUCT_CATEGORIES.map(
-        ({ label, value }) => ({ label, value })
-      ),
+      name: "category",
+      label: "Service Category",
+      type: "select",
+      options: PRODUCT_CATEGORIES.map(({ label, value }) => ({ label, value })),
       required: true,
     },
     {
-      name: 'serviceLocation',
-      label: 'Service Location',
-      type: 'text',
-      required: true, 
+      name: "serviceLocation",
+      label: "Service Location",
+      type: "text",
+      required: true,
     },
     {
-      name: 'serviceType',
-      label: 'Service Type',
-      type: 'select',
+      name: "serviceType",
+      label: "Service Type",
+      type: "select",
       required: true,
       options: [
-        { label: 'One-time Service', value: 'one_time' },
-        { label: 'Recurring Service', value: 'recurring' },
+        { label: "One-time Service", value: "one_time" },
+        { label: "Recurring Service", value: "recurring" },
       ],
     },
     {
-      name: 'duration',
-      label: 'Service Duration (hours)',
-      type: 'number',
+      name: "duration",
+      label: "Service Duration (hours)",
+      type: "number",
       min: 1,
       max: 24,
       required: true,
     },
     {
-      name: 'availability',
-      label: 'Service Availability',
-      type: 'array',
+      name: "availability",
+      label: "Service Availability",
+      type: "array",
       required: true,
       minRows: 1,
       maxRows: 7,
       fields: [
         {
-          name: 'day',
-          type: 'select',
+          name: "day",
+          type: "select",
           required: true,
           options: [
-            { label: 'Monday', value: 'monday' },
-            { label: 'Tuesday', value: 'tuesday' },
-            { label: 'Wednesday', value: 'wednesday' },
-            { label: 'Thursday', value: 'thursday' },
-            { label: 'Friday', value: 'friday' },
-            { label: 'Saturday', value: 'saturday' },
-            { label: 'Sunday', value: 'sunday' },
+            { label: "Monday", value: "monday" },
+            { label: "Tuesday", value: "tuesday" },
+            { label: "Wednesday", value: "wednesday" },
+            { label: "Thursday", value: "thursday" },
+            { label: "Friday", value: "friday" },
+            { label: "Saturday", value: "saturday" },
+            { label: "Sunday", value: "sunday" },
           ],
         },
         {
-          name: 'timeSlots',
-          type: 'array',
+          name: "timeSlots",
+          type: "array",
           required: true,
           minRows: 1,
           fields: [
             {
-              name: 'startTime',
-              type: 'text',
+              name: "startTime",
+              type: "text",
               required: true,
               admin: {
-                description: 'Format: HH:MM (24-hour)',
+                description: "Format: HH:MM (24-hour)",
               },
               validate: (val: string) => {
                 const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
                 if (!timeRegex.test(val)) {
-                  return 'Please enter a valid time in HH:MM (24-hour) format.';
+                  return "Please enter a valid time in HH:MM (24-hour) format.";
                 }
                 return true;
               },
             },
             {
-              name: 'endTime',
-              type: 'text',
+              name: "endTime",
+              type: "text",
               required: true,
               admin: {
-                description: 'Format: HH:MM (24-hour)',
+                description: "Format: HH:MM (24-hour)",
               },
               validate: (val: string) => {
                 const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
                 if (!timeRegex.test(val)) {
-                  return 'Please enter a valid time in HH:MM (24-hour) format.';
+                  return "Please enter a valid time in HH:MM (24-hour) format.";
                 }
                 return true;
               },
             },
           ],
           validate: (value: any, { siblingData }) => {
-            if (siblingData && typeof siblingData.startTime === 'string' && typeof siblingData.endTime === 'string') {
+            if (
+              siblingData &&
+              typeof siblingData.startTime === "string" &&
+              typeof siblingData.endTime === "string"
+            ) {
               const startTime = siblingData.startTime;
               const endTime = siblingData.endTime;
 
               const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
               if (timeRegex.test(startTime) && timeRegex.test(endTime)) {
-                const [startHour, startMinute] = startTime.split(':').map(Number);
-                const [endHour, endMinute] = endTime.split(':').map(Number);
+                const [startHour, startMinute] = startTime
+                  .split(":")
+                  .map(Number);
+                const [endHour, endMinute] = endTime.split(":").map(Number);
 
                 const startTotalMinutes = startHour * 60 + startMinute;
                 const endTotalMinutes = endHour * 60 + endMinute;
 
                 if (endTotalMinutes <= startTotalMinutes) {
-                  return 'End time must be after start time.';
+                  return "End time must be after start time.";
                 }
               }
             }
@@ -279,81 +274,81 @@ export const Products: CollectionConfig = {
       ],
     },
     {
-      name: 'product_files',
-      label: 'Service Documents',
-      type: 'relationship',
+      name: "product_files",
+      label: "Service Documents",
+      type: "relationship",
       required: false,
-      relationTo: 'product_files',
+      relationTo: "product_files",
       hasMany: false,
     },
     {
-      name: 'approvedForSale',
-      label: 'Service Status',
-      type: 'select',
-      defaultValue: 'pending',
+      name: "approvedForSale",
+      label: "Service Status",
+      type: "select",
+      defaultValue: "pending",
       access: {
-        create: ({ req }) => req.user.role === 'admin',
-        read: ({ req }) => req.user.role === 'admin',
-        update: ({ req }) => req.user.role === 'admin',
+        create: ({ req }) => req.user.role === "admin",
+        read: ({ req }) => req.user.role === "admin",
+        update: ({ req }) => req.user.role === "admin",
       },
       options: [
         {
-          label: 'Pending verification',
-          value: 'pending',
+          label: "Pending verification",
+          value: "pending",
         },
         {
-          label: 'Approved',
-          value: 'approved',
+          label: "Approved",
+          value: "approved",
         },
         {
-          label: 'Denied',
-          value: 'denied',
+          label: "Denied",
+          value: "denied",
         },
       ],
     },
     {
-      name: 'priceId',
+      name: "priceId",
       access: {
         create: () => false,
         read: () => false,
         update: () => false,
       },
-      type: 'text',
+      type: "text",
       admin: {
         hidden: true,
       },
     },
     {
-      name: 'stripeId',
+      name: "stripeId",
       access: {
         create: () => false,
         read: () => false,
         update: () => false,
       },
-      type: 'text',
+      type: "text",
       admin: {
         hidden: true,
       },
     },
     {
-      name: 'images',
-      type: 'array',
-      label: 'Service images',
+      name: "images",
+      type: "array",
+      label: "Service images",
       minRows: 1,
       maxRows: 4,
       required: true,
       labels: {
-        singular: 'Image',
-        plural: 'Images',
+        singular: "Image",
+        plural: "Images",
       },
       fields: [
         {
-          name: 'image',
-          type: 'upload',
-          relationTo: 'media',
+          name: "image",
+          type: "upload",
+          relationTo: "media",
           required: true,
         },
       ],
     },
   ],
-}
+};

@@ -85,6 +85,9 @@
   }
 }
 
+/* Font families */
+@import url("https://fonts.googleapis.com/css2?family=Inder:wght@400&family=Inter:wght@400;500;600;700&display=swap");
+
 /* Zonomo specific styles */
 .zonomo-gradient {
   background: linear-gradient(

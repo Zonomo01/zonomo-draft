@@ -50,7 +50,7 @@ const ProductListing = ({ product, index }: ProductListingProps) => {
           </h3>
           <p className="mt-1 text-sm text-gray-400">{label}</p>
           <p className="mt-1 font-medium text-sm text-white">
-            {formatPrice(product.price)}
+            {formatPrice(product.price, { currency: "INR" })}
           </p>
         </div>
       </Link>
