@@ -225,7 +225,7 @@ const Page = () => {
                   <p className="text-gray-400">Subtotal</p>
                   <p className="text-white font-semibold">
                     {isMounted ? (
-                      formatPrice(cartTotal)
+                      formatPrice(cartTotal, { currency: "INR" })
                     ) : (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                     )}
@@ -238,7 +238,7 @@ const Page = () => {
                   </div>
                   <div className="text-white font-semibold">
                     {isMounted ? (
-                      formatPrice(fee)
+                      formatPrice(fee, { currency: "INR" })
                     ) : (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                     )}
@@ -249,7 +249,7 @@ const Page = () => {
                   <div className="text-white font-semibold">Order Total</div>
                   <div className="text-white font-bold text-lg">
                     {isMounted ? (
-                      formatPrice(cartTotal + fee)
+                      formatPrice(cartTotal + fee, { currency: "INR" })
                     ) : (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                     )}
@@ -262,11 +262,31 @@ const Page = () => {
                   onClick={() =>
                     createCheckoutSession({
                       productIds: items.map(({ product }) => product.id),
+                      bookingDetails: items.map(
+                        ({
+                          product,
+                          selectedDate,
+                          selectedTimeSlot,
+                          selectedTimeFrame,
+                        }) => ({
+                          productId: product.id,
+                          selectedDate,
+                          selectedTimeSlot,
+                          selectedTimeFrame,
+                        })
+                      ),
                     })
                   }
                   disabled={isLoading || items.length === 0}
                 >
-                  {isLoading ? "Loading..." : "Checkout"}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Redirecting to payment...
+                    </div>
+                  ) : (
+                    "Checkout"
+                  )}
                 </Button>
               </div>
             </section>
