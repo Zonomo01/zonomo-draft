@@ -7,16 +7,31 @@ import { Toaster } from 'sonner'
 import './globals.css'
 import Footer from '@/components/Footer'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
+import { headers } from 'next/headers'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = constructMetadata()
+
+const authRoutes = [
+  '/sign-in',
+  '/sign-up',
+  '/verify-email',
+  '/seller/sign-in',
+  '/seller/sign-up',
+]
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Get the current pathname from headers
+  const pathname = headers().get('x-invoke-path') || ''
+
+  // Check if the current path is an auth route
+  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
+
   return (
     <html lang='en' className='h-full'>
       <head>
@@ -36,7 +51,7 @@ export default function RootLayout({
         )}>
         <main className='relative flex flex-col min-h-screen'>
           <Providers>
-            <Navbar />
+            {!isAuthRoute && <Navbar />}
             <div className='flex-grow flex-1'>
               {children}
             </div>

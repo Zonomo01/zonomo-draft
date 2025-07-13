@@ -91,3 +91,25 @@
   color: #fff; /* Keeping for text, if any, but probably not needed for a bullet */
   scale: 1 !important ;
 }
+
+
+/* Add this to your global.css file */
+
+.zonomo-gradient {
+  background: linear-gradient(135deg,  #2E1C4C 0%, #4C2462 35%, #44215B 65%, #5B2765 100%, #48215A 50%, #6E2C6A 30%);
+}
+
+/* Optional: Variant with fixed attachment for full-screen backgrounds */
+.zonomo-gradient-fixed {
+  background: linear-gradient(135deg, #2E1C4C 0%, #4C2462 35%, #44215B 65%, #5B2765 100%, #48215A 50%, #6E2C6A 30%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Optional: Variant for text backgrounds */
+.zonomo-gradient-text {
+  background: linear-gradient(135deg, #2D1B69 0%, #8B5CF6 35%, #A855F7 65%, #C084FC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

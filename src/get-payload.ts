@@ -46,7 +46,7 @@ export const getPayloadClient = async ({
     cached.promise = payload.init({
       email: {
         transport: transporter,
-        fromAddress: 'onboarding@resend.dev',
+        fromAddress: 'noreply@zonomo.in', // <-- use your verified domain
         fromName: 'Zonomo',
       },
       secret: process.env.PAYLOAD_SECRET,

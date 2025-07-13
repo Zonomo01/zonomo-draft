@@ -9,9 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { Poppins } from "next/font/google";
 
 import {
   AuthCredentialsValidator,
@@ -22,8 +24,15 @@ import { toast } from 'sonner'
 import { ZodError } from 'zod'
 import { useRouter } from 'next/navigation'
 
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "200", "600"],
+});
+
 const Page = () => {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -68,87 +77,178 @@ const Page = () => {
   }
 
   return (
-    <>
-      <div className='container relative flex pt-20 flex-col items-center justify-center lg:px-0'>
-        <div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]'>
-          <div className='flex flex-col items-center space-y-2 text-center'>
-            <Icons.logo className='h-20 w-20 text-emerald-600' />
-            <h1 className='text-2xl font-semibold tracking-tight text-emerald-600'>
-              Create a seller account
-            </h1>
 
-            <Link
-              className={buttonVariants({
-                variant: 'link',
-                className: 'gap-1.5 text-emerald-600 hover:text-emerald-700',
-              })}
-              href='/seller/sign-in'>
-              Already have a seller account? Sign in
-              <ArrowRight className='h-4 w-4' />
-            </Link>
-          </div>
+     <div
+      className={cn(
+        poppins.className,
+        "min-h-screen zonomo-gradient p-2 sm:p-4"
+      )}
+    >
+       <div className="min-h-screen flex flex-col lg:items-end lg:justify-around">
+        {/* Mobile Branding - Top */}
+        <div className="lg:hidden text-center pt-8 pb-12">
+          <h1 
+            className="text-4xl sm:text-6xl font-bold text-white mb-4 tracking-tight" 
+            style={{ textShadow: "2px 2px 8px rgba(0, 0, 0, 0.9)" }}
+          >
+            ZONOMO
+          </h1>
+          <p className="text-lg sm:text-xl text-purple-200 leading-relaxed font-light px-4">
+            Zonomo connects you with a trusted home service partner.
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className='grid gap-2'>
-              <div className='grid gap-1 py-2'>
-                <Label htmlFor='email' className='text-emerald-600'>Email</Label>
-                <Input
-                  {...register('email')}
-                  className={cn({
-                    'focus-visible:ring-emerald-500 border-emerald-200':
-                      !errors.email,
-                    'focus-visible:ring-red-500': errors.email,
-                  })}
-                  placeholder='you@example.com'
-                />
-                {errors?.email && (
-                  <p className='text-sm text-red-500'>
-                    {errors.email.message}
-                  </p>
-                )}
+        <div className="w-full max-w-7xl mx-auto flex-1 lg:flex lg:items-center lg:justify-center">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8 lg:gap-16">
+            {/* Desktop Branding - Left side */}
+            <div className="hidden lg:flex flex-col justify-center items-start pr-24 ">
+              <div className="max-w-md xl:max-w-lg">
+                <h1
+                  className="text-6xl xl:text-9xl font-bold text-white mb-6 tracking-tight"
+                  style={{ textShadow: "2px 2px 8px rgba(0, 0, 0, 0.9)" }}
+                >
+                  ZONOMO
+                </h1>
+                <p className="text-xl xl:text-2xl text-purple-200 leading-relaxed font-light">
+                  Zonomo connects you with a trusted home service partner.
+                </p>
               </div>
-
-              <div className='grid gap-1 py-2'>
-                <Label htmlFor='password' className='text-emerald-600'>Password</Label>
-                <Input
-                  {...register('password')}
-                  type='password'
-                  className={cn({
-                    'focus-visible:ring-emerald-500 border-emerald-200':
-                      !errors.password,
-                    'focus-visible:ring-red-500': errors.password,
-                  })}
-                  placeholder='Password'
-                />
-                {errors?.password && (
-                  <p className='text-sm text-red-500'>
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <Button 
-                disabled={isLoading}
-                className='bg-emerald-600 hover:bg-emerald-700 text-white'>
-                {isLoading && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
-                Create seller account
-              </Button>
             </div>
-          </form>
 
-          <Button
-            onClick={() => router.push('/sign-up')}
-            variant='outline'
-            className='border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-            disabled={isLoading}>
-            Create customer account instead
-          </Button>
+          {/* Right side - Seller Signup Form */}
+          <div className='w-full lg:w-1/2 xl:w-1/3 flex items-center justify-center px-4 sm:px-6 py-8 lg:py-0'>
+            <div className='w-full max-w-md'>
+            
+
+              {/* Form container */}
+              <div className="w-full xl:w-auto xl:flex-shrink-0">
+              <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/10 w-full xl:w-[450px] max-w-md mx-auto xl:mx-0">
+                <div className="text-center mb-6 sm:mb-8">
+                  <h2 className="text-xl sm:text-2xl text-white mb-2">
+                    Login to your Seller's account
+                  </h2>
+               
+                  <Link
+                    className={buttonVariants({
+                      variant: 'link',
+                      className: 'gap-1.5 text-purple-500 hover:text-purple-400 p-0 text-sm sm:text-base',
+                    })}
+                    href='/seller/sign-in'>
+                    Already have a seller account? Sign in
+                    <ArrowRight className='h-3 w-3 sm:h-4 sm:w-4' />
+                  </Link>
+                </div>
+
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-5 sm:space-y-6'>
+                  {/* Email Field */}
+                  <div className='space-y-2'>
+                    <Label htmlFor='email' className='text-purple-300 text-sm font-medium'>
+                      Email
+                    </Label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none'>
+                        <svg className='h-4 w-4 sm:h-5 sm:w-5 text-purple-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207' />
+                        </svg>
+                      </div>
+                      <Input
+                        {...register('email')}
+                        type='email'
+                        placeholder='you@example.com'
+                        className={cn(
+                          'pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border-purple-400/30 text-black placeholder-purple-300 rounded-xl transition-all duration-200 text-sm sm:text-base',
+                          {
+                            'focus-visible:ring-purple-500 border-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20':
+                              !errors.email,
+                            'focus-visible:ring-red-500 border-red-400 focus:border-red-400 focus:ring-red-400/20': errors.email,
+                          }
+                        )}
+                      />
+                    </div>
+                    {errors?.email && (
+                      <p className='text-xs sm:text-sm text-red-400 ml-1'>
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Password Field */}
+                  <div className='space-y-2'>
+                    <Label htmlFor='password' className='text-purple-300 text-sm font-medium'>
+                      Password
+                    </Label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none'>
+                        <svg className='h-4 w-4 sm:h-5 sm:w-5 text-purple-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                        </svg>
+                      </div>
+                      <Input
+                        {...register('password')}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder='Password'
+                        className={cn(
+                          'pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3 border-purple-400/30 text-black placeholder-purple-300 rounded-xl transition-all duration-200 text-sm sm:text-base',
+                          {
+                            'focus-visible:ring-purple-500 border-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20':
+                              !errors.password,
+                            'focus-visible:ring-red-500 border-red-400 focus:border-red-400 focus:ring-red-400/20': errors.password,
+                          }
+                        )}
+                      />
+                      <button
+                        type='button'
+                        onClick={() => setShowPassword(!showPassword)}
+                        className='absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center'
+                      >
+                        {showPassword ? (
+                          <EyeOff className='h-4 w-4 sm:h-5 sm:w-5 text-purple-300 hover:text-purple-200' />
+                        ) : (
+                          <Eye className='h-4 w-4 sm:h-5 sm:w-5 text-purple-300 hover:text-purple-200' />
+                        )}
+                      </button>
+                    </div>
+                    {errors?.password && (
+                      <p className='text-xs sm:text-sm text-red-400 ml-1'>
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Create Seller Account Button */}
+                  <Button
+                    type='submit'
+                    disabled={isLoading}
+                    className='w-full py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+                  >
+                    {isLoading && (
+                      <Loader2 className='mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin' />
+                    )}
+                    Create seller account
+                  </Button>
+                </form>
+
+                {/* Customer Account Button */}
+                <div className='mt-5 sm:mt-6'>
+                  <Button
+                    onClick={() => router.push('/sign-up')}
+                    variant='outline'
+                    className='w-full py-2.5 sm:py-3 bg-transparent border-purple-400/50 text-purple-300 hover:bg-purple-400/10 hover:text-purple-200 rounded-xl font-semibold transition-all duration-200 text-sm sm:text-base'
+                    disabled={isLoading}
+                  >
+                    Create customer account instead
+                  </Button>
+                </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </>
+      </div>
+</div>
   )
 }
 
-export default Page 
+export default Page
