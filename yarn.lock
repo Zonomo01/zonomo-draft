@@ -5289,9 +5289,8 @@ diff@^5.1.0:
     body-parser "^1.20.2"
     class-variance-authority "^0.7.0"
     clsx "^2.0.0"
-    cross-env "^7.0.3"
     date-fns "^4.1.0"
-    digitalhippo "file:../../../AppData/Local/Yarn/Cache/v6/npm-digitalhippo-0.1.0-c351e375-9994-4808-9555-2c07bbe13633-1752076147737/node_modules/digitalhippo"
+    digitalhippo "file:../../../AppData/Local/Yarn/Cache/v6/npm-digitalhippo-0.1.0-7900102b-b495-4032-b9d8-44ec07f996d7-1752490522536/node_modules/digitalhippo"
     dotenv "^16.3.1"
     express "^4.18.2"
     gsap "^3.13.0"
@@ -5438,11 +5437,6 @@ dotenv@^16.3.1:
   version "16.3.1"
   resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.3.1.tgz"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
-
-dotenv@^17.1.0:
-  version "17.1.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.1.0.tgz#164fa6ac1392165f5e2d8eb55296b0894e7d6a22"
-  integrity sha512-tG9VUTJTuju6GcXgbdsOuRhupE8cb4mRgY5JLRCh4MtGoVo3/gfGUtOMwmProM6d0ba2mCFvv+WrpYJV6qgJXQ==
 
 duplexer@^0.1.2:
   version "0.1.2"
@@ -8119,11 +8113,6 @@ nodemailer@^6.9.7:
   version "6.9.7"
   resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-6.9.7.tgz"
   integrity sha512-rUtR77ksqex/eZRLmQ21LKVH5nAAsVicAtAYudK7JgwenEDZ0UIQ1adUGqErz7sMkWYxWTTU1aeP2Jga6WQyJw==
-
-nodemailer@^7.0.5:
-  version "7.0.5"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-7.0.5.tgz#3fa6607cab42401e4bedac9297e0aaa9ff84544b"
-  integrity sha512-nsrh2lO3j4GkLLXoeEksAMgAOqxOv6QumNRVQTJwKH4nuiww6iC2y7GyANs9kRAxCexg3+lTWM3PZ91iLlVjfg==
 
 nodemon@^3.0.1:
   version "3.0.1"
